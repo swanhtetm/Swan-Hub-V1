@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lua Hex Obfuscator</title>
+    <style>
+        body {
+            font-family: 'Consolas', monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #569cd6;
+            text-align: center;
+            border-bottom: 1px solid #3e3e3e;
+            padding-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            background-color: #252525;
+            color: #d4d4d4;
+            border: 1px solid #3e3e3e;
+            padding: 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            resize: vertical;
+            border-radius: 4px;
+        }
+        .button-group {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            background-color: #3276b1;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #428bca;
+        }
+        .settings {
+            background-color: #252525;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #3e3e3e;
+        }
+        .setting-option {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        .output-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #9e9e9e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lua Hex Obfuscator</h1>
+        
+        <div class="settings">
+            <h3>Obfuscation Settings</h3>
+            <div class="setting-option">
+                <label><input type="checkbox" id="addAntiTamper" checked> Add Anti-Tamper Protection</label>
+            </div>
+            <div class="setting-option">
+                <label><input type="checkbox" id="addRandomVars" checked> Add Random Variables</label>
+            </div>
+            <div class="setting-option">
+                <label><input type="checkbox" id="addMetatable" checked> Add Metatable Protection</label>
+            </div>
+            <div class="setting-option">
+                <label><input type="checkbox" id="addLoader" checked> Add Dynamic Loader</label>
+            </div>
+        </div>
+        
+        <textarea id="inputCode" placeholder="Paste your Lua code here..."></textarea>
+        
+        <div class="button-group">
+            <button id="obfuscateBtn">Obfuscate Code</button>
+            <button id="copyBtn">Copy to Clipboard</button>
+            <button id="clearBtn">Clear All</button>
+        </div>
+        
+        <textarea id="outputCode" placeholder="Obfuscated code will appear here..." readonly></textarea>
+        
+        <div class="output-info">
+            <div>Original size: <span id="originalSize">0</span> bytes</div>
+            <div>Obfuscated size: <span id="obfuscatedSize">0</span> bytes</div>
+            <div>Obfuscation ratio: <span id="obfuscationRatio">0%</span></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputCode = document.getElementById('inputCode');
+            const outputCode = document.getElementById('outputCode');
+            const obfuscateBtn = document.getElementById('obfuscateBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const originalSize = document.getElementById('originalSize');
+            const obfuscatedSize = document.getElementById('obfuscatedSize');
+            const obfuscationRatio = document.getElementById('obfuscationRatio');
+            
+            // Generate random variable names
+            function generateRandomName(length) {
+                const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
+                let result = '';
+                for (let i = 0; i < length; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+            
+            // Convert string to hex
+            function stringToHex(str) {
+                let hex = '';
+                for (let i = 0; i < str.length; i++) {
+                    hex += str.charCodeAt(i).toString(16).padStart(2, '0');
+                }
+                return hex;
+            }
+            
+            // Generate random hex string
+            function generateRandomHex(length) {
+                const chars = '0123456789abcdef';
+                let result = '';
+                for (let i = 0; i < length; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+            
+            // Obfuscate the code
+            function obfuscateLuaCode(code) {
+                if (!code.trim()) return '';
+                
+                const addAntiTamper = document.getElementById('addAntiTamper').checked;
+                const addRandomVars = document.getElementById('addRandomVars').checked;
+                const addMetatable = document.getElementById('addMetatable').checked;
+                const addLoader = document.getElementById('addLoader').checked;
+                
+                let obfuscated = '';
+                const var1 = generateRandomName(8);
+                const var2 = generateRandomName(8);
+                const var3 = generateRandomName(8);
+                const var4 = generateRandomName(8);
+                const randomHex = generateRandomHex(32);
+                
+                // Add random variables at start
+                if (addRandomVars) {
+                    obfuscated += `local ${var1}={}for ${var2}=1,${Math.floor(Math.random()*50)+30} do ${var1}[#${var1}+1]=("ABCDEF0123456789"):math.random(1,16)end;\n`;
+                    obfuscated += `local ${var3}=table.concat(${var1})\n`;
+                    obfuscated += `local ${var4}=function(${var2})return ${var2}:gsub('.',function(${var2})return string.format('%02x',${var2}:byte())end)end;\n\n`;
+                }
+                
+                // Add metatable protection
+                if (addMetatable) {
+                    obfuscated += `local _=function(_)local _=_G;local _=setmetatable({},{__index=function(_,_)return _[_]end})return _ end;\n`;
+                }
+                
+                // Hex encode the main code
+                const hexCode = stringToHex(code);
+                const loaderVar = generateRandomName(6);
+                
+                // Add dynamic loader
+                if (addLoader) {
+                    obfuscated += `local ${loaderVar}=function(_,_)return loadstring(_)()end;\n`;
+                    obfuscated += `local _=_.secure(_.decrypt("${hexCode}"))()\n`;
+                } else {
+                    obfuscated += `loadstring("${hexCode}".gsub('..', function (${var2}) return string.char(tonumber(${var2}, 16)) end))()\n`;
+                }
+                
+                // Add anti-tamper
+                if (addAntiTamper) {
+                    obfuscated += `if _~=_.hash("${randomHex}")then game:GetService("Players").LocalPlayer:Kick("Anti-Tamper Triggered")end\n`;
+                }
+                
+                return obfuscated;
+            }
+            
+            // Update size information
+            function updateSizeInfo() {
+                const inputText = inputCode.value;
+                const outputText = outputCode.value;
+                
+                originalSize.textContent = inputText.length;
+                obfuscatedSize.textContent = outputText.length;
+                
+                if (inputText.length > 0) {
+                    const ratio = Math.round((outputText.length / inputText.length) * 100);
+                    obfuscationRatio.textContent = `${ratio}%`;
+                } else {
+                    obfuscationRatio.textContent = '0%';
+                }
+            }
+            
+            // Obfuscate button click
+            obfuscateBtn.addEventListener('click', function() {
+                const code = inputCode.value;
+                const obfuscated = obfuscateLuaCode(code);
+                outputCode.value = obfuscated;
+                updateSizeInfo();
+            });
+            
+            // Copy button click
+            copyBtn.addEventListener('click', function() {
+                outputCode.select();
+                document.execCommand('copy');
+                
+                // Visual feedback
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+            
+            // Clear button click
+            clearBtn.addEventListener('click', function() {
+                inputCode.value = '';
+                outputCode.value = '';
+                updateSizeInfo();
+            });
+            
+            // Update sizes when typing
+            inputCode.addEventListener('input', updateSizeInfo);
+        });
+    </script>
+</body>
+</html>
